@@ -95,22 +95,55 @@ function minimax(depth, alpha, beta, maximizingPlayer) {
 }
 
 function evaluateBoard() {
-  // Simple evaluation function for demonstration purposes
   var pieceValues = {
-    'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9, 'k': 100
+      'p': 100, 'n': 320, 'b': 330, 'r': 500, 'q': 900, 'k': 20000
   };
 
-  var score = 0;
+  var boardValue = 0;
   var fen = game.fen();
   var pieces = fen.split(' ')[0];
 
   for (var i = 0; i < pieces.length; i++) {
-    if (pieceValues.hasOwnProperty(pieces[i])) {
-      score += pieceValues[pieces[i]];
-    }
+      if (pieceValues.hasOwnProperty(pieces[i])) {
+          var pieceValue = pieceValues[pieces[i]];
+          // Adjust score based on piece position
+          if (pieces[i].toLowerCase() != pieces[i]) {
+              // White piece
+              pieceValue *= -1;
+          }
+
+          // Add piece value to overall board value
+          boardValue += pieceValue;
+
+          // Adjust score based on piece mobility
+          var mobility = game.moves({ square: algebraic(i) }).length;
+          boardValue += mobility * 5;
+
+          // Reward pieces for moving forward, but not excessively
+          var pieceSquare = algebraic(i);
+          var rank = parseInt(pieceSquare[1]);
+          if (game.turn() === 'w') {
+              boardValue += Math.min(4, (8 - rank)) * 10; // Cap forward movement bonus
+          } else {
+              boardValue += Math.min(4, (rank - 1)) * 10; // Cap forward movement bonus
+          }
+      }
   }
 
-  return score;
+  // Adjust score based on control of center squares
+  var centerSquares = ['d4', 'e4', 'd5', 'e5'];
+  for (var j = 0; j < centerSquares.length; j++) {
+      var control = game.moves({ square: centerSquares[j] }).length;
+      boardValue += control * 2;
+  }
+
+  return boardValue;
+}
+
+function algebraic(squareIndex) {
+  var file = String.fromCharCode('a'.charCodeAt(0) + (squareIndex % 8));
+  var rank = 8 - Math.floor(squareIndex / 8);
+  return file + rank;
 }
 
 function onDrop(source, target) {
