@@ -127,7 +127,7 @@ function onDrop(source, target) {
   if (move === null) return 'snapback'
 
   window.setTimeout(function() {
-    var bestMove = minimaxMove(10); // Adjust the depth of the minimax algorithm as needed
+    var bestMove = minimaxMove(3); // Adjust the depth of the minimax algorithm as needed
     game.move(bestMove);
     board.position(game.fen());
   }, 250);
